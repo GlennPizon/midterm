@@ -10,11 +10,17 @@ app.get('/test', (req, res) => {
 
 // Start the server and listen on the specified port
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`); // Log a message to the console
+  console.log(`Server is running on port http://localhost:${port}`); // Log a message to the console
 });
 
 // Testing considerations:
 // - Use a browser or Postman to access http://localhost:3000/test.
 // - Verify that the JSON response is correctly formatted and contains the expected message.
+
+//outputs: {"message":"Express is working! Glenn Entia Pizon"}
+
+
 // - Test with different HTTP methods (e.g., POST, PUT) to ensure they return 404.
+
+
 // - Check that the server handles concurrent requests gracefully.
