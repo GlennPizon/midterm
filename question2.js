@@ -5,7 +5,7 @@ function filterEvenNumbers(numbers) {
     // The condition 'number % 2 === 0' checks if a number is even.
     return numbers.filter(number => number % 2 === 0);
   }
-  
+  ////
   // Example usage and testing:
   const numbers = [1, 2, 3, 4, 5, 6, 7, 8];
   const evenNumbers = filterEvenNumbers(numbers);
