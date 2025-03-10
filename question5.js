@@ -1,44 +1,89 @@
+// Import dependencies
 const express = require('express');
 const { Sequelize, DataTypes } = require('sequelize');
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
-// Replace with your MySQL connection details
-const sequelize = new Sequelize('your_database', 'your_user', 'your_password', {
-  host: 'localhost',
-  dialect: 'mysql',
+// Database Wrapper
+class Database {
+    constructor(dbName, username, password, options) {
+        this.sequelize = new Sequelize(dbName, username, password, options);
+    }
+
+    async initialize() {
+        try {
+            await this.sequelize.authenticate();
+            console.log('Connection to MySQL has been established successfully.');
+        } catch (error) {
+            console.error('Unable to connect to the database:', error);
+            process.exit(1); // Exit application on failure
+        }
+    }
+
+    getSequelize() {
+        return this.sequelize;
+    }
+}
+
+// Initialize the database wrapper
+const db = new Database('your_database_name', 'your_username', 'your_password', {
+    host: 'localhost',
+    dialect: 'mysql',
 });
 
-// Define the User model using Sequelize
-const User = sequelize.define('User', {
-  name: DataTypes.STRING,
-  email: DataTypes.STRING,
-  status: DataTypes.STRING,
+// Initialize the database connection
+(async () => {
+    await db.initialize();
+})();
+
+// Define User model
+const User = db.getSequelize().define('User', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    email: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false,
+    },
+    status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+}, {
+    tableName: 'users',
+    timestamps: false,
 });
 
-// Define a GET route for /users
+// Sync models
+(async () => {
+    try {
+        await User.sync();
+        console.log('User model synced successfully.');
+    } catch (error) {
+        console.error('Error syncing User model:', error);
+    }
+})();
+
+// Define the /users route
 app.get('/users', async (req, res) => {
-  try {
-    // Fetch all users from the database using Sequelize
-    const users = await User.findAll();
-    res.json(users); // Send the users as a JSON response
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal server error' }); // Send an error response
-  }
+    try {
+        const users = await User.findAll(); // Fetch all users
+        res.json(users);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Unable to fetch users' });
+    }
 });
 
-// Synchronize the model with the database and start the server
-sequelize.sync().then(() => {
-  app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
-  });
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-// Testing considerations:
-// - Verify that the server connects to the MySQL database successfully.
-// - Access http://localhost:3000/users and verify that the users are returned as JSON.
-// - Test with different database states (e.g., empty table, multiple users).
-// - Test with invalid database credentials to ensure the server handles errors.
-// - Verify that the database schema matches the Sequelize model.
